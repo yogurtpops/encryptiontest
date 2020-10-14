@@ -20,18 +20,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Future<File> createFileOfPdfUrl() async {
-    final url = "http://africau.edu/images/default/sample.pdf";
-    final filename = url.substring(url.lastIndexOf("/") + 1);
-    var request = await HttpClient().getUrl(Uri.parse(url));
-    var response = await request.close();
-    var bytes = await consolidateHttpClientResponseBytes(response);
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    File file = new File('$dir/$filename');
-    await file.writeAsBytes(bytes);
-    return file;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +43,7 @@ class _MyAppState extends State<MyApp> {
               child: RaisedButton(
                   child: Text("Open File Manager"),
                   onPressed: () async {
-                    _loadFiles();
+
                   }
               ),
             ),
@@ -65,18 +53,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  List<FileSystemEntity> _fileList;
-
-  Future<void> _loadFiles() async {
-    // _loadingFiles = true;
-
-    var root = await getExternalStorageDirectory();
-    _fileList = await FileManager(root: root).walk().toList();
-
-    // _loadingFiles = false;
-
-    setState(() {});
-  }
 }
 
 
@@ -85,7 +61,7 @@ String encrypted_filepath = "/data/user/0/com.example.encrypt_pdf_project/app_fl
 String key = "my cool password";
 
 Future<void> tryEncryption() async {
-  String pathPDF = "/data/user/0/com.example.encrypt_pdf_project/app_flutter/dummy.pdf";
+  String pathPDF = "/data/user/0/my_file/dummy.pdf";
   var crypt = AesCrypt(key);
   crypt.setOverwriteMode(AesCryptOwMode.on);
   crypt.encryptFileSync(pathPDF, encrypted_filepath);
@@ -98,6 +74,8 @@ class PDFScreenState extends State<PDFScreen> {
   void initState() {
     tryDecryption();
   }
+
+
 
   @override
   void dispose() {
@@ -113,19 +91,20 @@ class PDFScreenState extends State<PDFScreen> {
   }
 
   tryDecryption() async {
-    String decryptedFilePath = encrypted_filepath;
     try{
       var crypt = AesCrypt(key);
-      await crypt.decryptFileSync(encrypted_filepath, "/data/user/0/com.example.encrypt_pdf_project/app_flutter/dummy_dec.pdf");
-      decryptedFilePath = "/data/user/0/com.example.encrypt_pdf_project/app_flutter/dummy_dec.pdf";
+      crypt.setOverwriteMode(AesCryptOwMode.on);
+      var systemTempDir = Directory.systemTemp.createTempSync();
+      var savePath = "${systemTempDir.path}/dummy_dec.pdf";
+      File(savePath).createSync();
+      await crypt.decryptFileSync(encrypted_filepath, savePath);
+      setState(() {
+        pathPDF = savePath;
+      });
+      print('success decrypt file in $savePath');
     } catch(_){
-      decryptedFilePath = encrypted_filepath;
       print('error decrypt file $_');
     }
-    setState(() {
-      pathPDF = decryptedFilePath;
-      print('path decrypted file $pathPDF');
-    });
   }
 
   @override
