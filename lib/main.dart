@@ -61,7 +61,7 @@ String encrypted_filepath = "/data/user/0/com.example.encrypt_pdf_project/app_fl
 String key = "my cool password";
 
 Future<void> tryEncryption() async {
-  String pathPDF = "/data/user/0/my_file/dummy.pdf";
+  String pathPDF = "/storage/emulated/0/my_file/dummy.pdf";
   var crypt = AesCrypt(key);
   crypt.setOverwriteMode(AesCryptOwMode.on);
   crypt.encryptFileSync(pathPDF, encrypted_filepath);
